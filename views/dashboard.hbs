@@ -1,0 +1,83 @@
+{{!--  
+  home page to be served   
+--}}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>  
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  {{!-- <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script> --}}
+</head>
+
+<body class="min-h-screen py-12 px-4 bg-gradient-to-br from-indigo-50 to-white-50">
+  {{!-- Main container --}}
+  <div class="max-w-4xl rounded-lg bg-white shadow-xl p-8 m-auto">
+    <h1 class="text-2xl font-bold font-semibold px-3 py-1 rounded-full">
+      Oil Price
+    </h1>
+    <h3 class="text-base text-gray-500 px-3 py-1">
+      {{price.market}} market - Last updated: {{price.last_updated}}
+    </h3>
+
+    {{!-- Oil data card --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      {{#each price.data}}
+      <div class="bg-white p-4 rounded-xl shadow">
+        <h2 class="text-lg font-semibold text-gray-700">{{this.name}}</h2>
+        <p class="text-2xl font-bold mt-2">
+          ${{this.price}}
+        </p>
+
+        {{#if (gt this.change 0)}}
+          <p class="mt-1 text-sm text-emerald-600">▲ +{{this.change}}</p>
+        {{else if (lt this.change 0)}}
+          <p class="mt-1 text-sm text-red-600">▼ {{this.change}}</p>
+        {{else}}
+          <p class="mt-1 text-sm text-gray-500">{{this.change}}</p>
+        {{/if}}
+
+      </div>
+      {{/each}}
+    </div>
+
+    <!-- Oil data table -->
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+      <table class="w-full text-left">
+        <thead class="bg-gray-200 text-gray-600 text-sm uppercase">
+          <tr>
+            <th class="p-3">Symbol</th>
+            <th class="p-3">Name</th>
+            <th class="p-3">Price ({{price.currency}})</th>
+            <th class="p-3">Change</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {{#each price.data}}
+          <tr class="border-t">
+            <td class="p-3 font-semibold">{{this.symbol}}</td>
+            <td class="p-3">{{this.name}}</td>
+            <td class="p-3">${{this.price}}</td>
+
+            {{#if (gt this.change 0)}}
+              <td class="p-3 font-medium text-emerald-600">+{{this.change}}</td>
+            {{else if (lt this.change 0)}}
+              <td class="p-3 font-medium text-red-600">{{this.change}}</td> 
+            {{else}}
+              <td class="p-3 font-medium text-gray-600">{{this.change}}</td> 
+            {{/if}}
+          </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+
+    <a href="/logout" class="inline-block bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 mt-6 rounded-lg transition duration-200 transform hover:scale-105">
+      ← Logout
+    </a>
+  </div>
+</body>
+</html>
