@@ -2,6 +2,7 @@ const express = require('express');
 const basicAuth = require('express-basic-auth');
 const { IpFilter, IpDeniedError } = require('express-ipfilter');
 const rateLimit = require('express-rate-limit');
+const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const hbs = require('hbs');
 const path = require('path');
@@ -52,7 +53,7 @@ const ips = ['127.0.0.1', '::1'];
 app.use(IpFilter(ips, { mode: 'allow' }));
 
 // bearer-token api set up
-const token = process.env.SECRET || 'NOT_SO_SECRET_SECRET'; 
+const SECRET = process.env.SECRET || 'NOT_SO_SECRET_SECRET';  // get secret from env
 // helper function to check header for token 
 function bearerAuth(req, res, next) {
   // get header 
@@ -62,16 +63,19 @@ function bearerAuth(req, res, next) {
   if (!authHeader || !authHeader.startsWith('Bearer ')) { 
     return res.status(401).send({error: "Invalid Bearer token"});
   }
-
+  
   // get the token from the header
   const key = authHeader.split(' ')[1];
 
-  // validate token 
-  if (key !== token) { 
+  try {
+    // decode token
+    const decoded = jwt.verify(key, SECRET);
+    req.user = decoded;
+    next();
+  } catch (err) {
+    // invalid token
     return res.status(401).send({error: "Incorrect Bearer token; Permission denied"});
   }
-
-  next();
 }
 
 // basic auth set up
@@ -109,6 +113,15 @@ app.get('/', (req, res) => {
 app.get('/dashboard', auth, (req, res) => {
   // format ISO time 
   const formattedDate = new Date(price.last_updated).toLocaleString();
+
+  // generate Bearer token using username
+  const username = req.auth.user;
+  const token = jwt.sign(
+    { username }, SECRET,
+    {  expiresIn: '1h' }
+  );
+
+  console.log(`bearer token: ${token}`);
 
   // render dashboard with prices passed in
   res.render('dashboard', {price: {...price, last_updated: formattedDate}});
